@@ -1,2 +1,1 @@
-"""Mock tool interfaces for Walsh agent data access."""
-
+"""MCP-style tool interfaces for Walsh agents."""

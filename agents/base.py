@@ -108,4 +108,3 @@ class Agent(ABC):
     @abstractmethod
     def parse_response(self, response: Any) -> AgentThesis:
         """Convert an Anthropic response into the shared AgentThesis schema."""
-
