@@ -8,3 +8,4 @@ dist/
 eval/results/*.json
 eval/results/*.jsonl
 !eval/results/.gitkeep
+*.tsbuildinfo
