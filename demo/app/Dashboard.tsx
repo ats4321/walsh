@@ -27,6 +27,14 @@ const TICKER_LABEL: Record<string, string> = {
   META: "META — risk veto (volatility)",
 };
 
+// Linear interpolate t ∈ [0,1] clamped, 0 = conf 50%, 1 = conf 80%+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * Math.max(0, Math.min(1, t));
+}
+function cT(confidence: number): number {
+  return (confidence - 0.5) / 0.3;
+}
+
 // Confidence tiers: <60% muted, 60-75% standard, 75%+ saturated
 function signalColor(signal: string, confidence: number): string {
   const up = signal === "STRONG_BUY" || signal === "BUY";
@@ -42,11 +50,9 @@ function signalColor(signal: string, confidence: number): string {
   return "#fca5a5";
 }
 
-// Signal font size scales with conviction — 80% and 50% should not look equally weighted
+// Signal font size scales with conviction — continuous, not stepped
 function signalFontSize(confidence: number): number {
-  if (confidence >= 0.75) return 20;
-  if (confidence >= 0.60) return 17;
-  return 14;
+  return Math.round(lerp(13, 21, cT(confidence)));
 }
 
 // Convert 0-1 alpha to two-digit hex for embedding in color strings
@@ -54,16 +60,18 @@ function ax(alpha: number): string {
   return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0");
 }
 
-// Box-shadow that encodes both elevation AND confidence.
-// High-confidence cards: colored ring + soft glow. Low-confidence: neutral ring only.
+// Box-shadow encodes both elevation AND confidence — ring alpha and glow both interpolate.
 function agentCardShadow(signal: string, confidence: number, hovered: boolean): string {
   const color = signalColor(signal, confidence);
   const neutral = signal === "HOLD" || signal === "UNKNOWN";
-  const ringAlpha = neutral ? 0.07 : confidence >= 0.75 ? 0.40 : confidence >= 0.60 ? 0.20 : 0.09;
-  const glow = !neutral && confidence >= 0.75 ? `, 0 0 20px ${color}${ax(0.14)}` : "";
+  const t = cT(confidence);
+  const ringAlpha = neutral ? 0.07 : lerp(0.08, 0.44, t);
+  // Glow starts fading in above 65% confidence
+  const glowOpacity = neutral ? 0 : lerp(0, 0.14, Math.max(0, (confidence - 0.65) / 0.15));
+  const glow = glowOpacity > 0.005 ? `, 0 0 20px ${color}${ax(glowOpacity)}` : "";
   return hovered
-    ? `0 0 0 1px ${color}${ax(Math.min(ringAlpha * 1.6, 0.7))}, 0 14px 32px rgba(0,0,0,0.65)${glow}`
-    : `0 0 0 1px ${color}${ax(ringAlpha)}, 0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)${glow}`;
+    ? `0 0 0 1.5px ${color}${ax(Math.min(ringAlpha * 1.6, 0.7))}, 0 14px 32px rgba(0,0,0,0.65)${glow}`
+    : `0 0 0 1px ${color}${ax(ringAlpha)}, 0 4px 12px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.35)${glow}`;
 }
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -180,9 +188,10 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
   const color = signalColor(thesis.signal, thesis.confidence);
   const conf = thesis.confidence;
   const confPct = Math.round(conf * 100);
-  // Top border thickness + opacity both scale with confidence
-  const borderW = conf >= 0.75 ? 2 : conf >= 0.60 ? 1.5 : 1;
-  const borderAlpha = conf >= 0.75 ? 0.90 : conf >= 0.60 ? 0.55 : 0.28;
+  // Border thickness + opacity interpolate continuously 50% → 80%
+  const t = cT(conf);
+  const borderW = lerp(0.75, 2.5, t).toFixed(2);
+  const borderAlpha = lerp(0.16, 0.90, t);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -220,8 +229,8 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
       <div style={{
         ...T.body,
         fontSize: 12,
-        fontWeight: thesis.confidence >= 0.75 ? 600 : 400,
-        color: thesis.confidence >= 0.75 ? "#94a3b8" : "#475569",
+        fontWeight: conf >= 0.72 ? 600 : 400,
+        color: conf >= 0.72 ? "#94a3b8" : "#475569",
         marginBottom: 4,
       }}>
         {confPct}% confidence
@@ -334,8 +343,10 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
     <>
       {/* Responsive styles + hover that can't be expressed in inline style */}
       <style>{`
-        /* Prevent any off-screen content from creating horizontal scroll */
-        html, body { overflow-x: hidden; }
+        /* Clip our own content. Note: viewport-fixed overlays (e.g. Vercel toolbar) are
+           positioned relative to the viewport and cannot be clipped by overflow rules here. */
+        html { overflow-x: hidden; }
+        body { overflow-x: hidden; position: relative; }
         .analyst-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .synthesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .header-reason { display: block; min-width: 0; }
@@ -469,7 +480,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
             {/* ── Stats row ABOVE chart ── */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
                 <div style={T.label}>Sharpe Ratio</div>
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.sharpe}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
@@ -478,7 +489,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
                 <div style={T.label}>Total Return</div>
                 {/* Positive value stays neutral — the red delta badge communicates underperformance */}
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.walshReturn}</div>
@@ -488,7 +499,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
                 <div style={T.label}>Win Rate</div>
                 <div style={{ ...T.hero, marginTop: 8, color: "#22c55e" }}>{BACKTEST.winRate}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
