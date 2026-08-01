@@ -1,0 +1,26 @@
+[project]
+name = "walsh-backtest"
+version = "0.1.0"
+description = "Historical backtest and evaluation harness for Walsh."
+requires-python = ">=3.11"
+dependencies = [
+    "yfinance>=0.2",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["agents*", "backtest*", "eval*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

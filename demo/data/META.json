@@ -1,0 +1,39 @@
+{
+  "ticker": "META",
+  "signal": "BUY",
+  "confidence": 0.48,
+  "approved": true,
+  "risk_notes": "No risk flags",
+  "reasoning": "Weighted score=1.38 \u2192 BUY. Agents: [fundamental=STRONG_BUY(80%), technical=STRONG_BUY(60%), sentiment=HOLD(50%), macro=BUY(50%)]",
+  "theses": [
+    {
+      "agent": "fundamental",
+      "ticker": "META",
+      "signal": "STRONG_BUY",
+      "confidence": 0.8,
+      "reasoning": "PE=18, revenue_growth=18%, profit_margin=22%, D/E=0.3 \u2192 score=2"
+    },
+    {
+      "agent": "technical",
+      "ticker": "META",
+      "signal": "STRONG_BUY",
+      "confidence": 0.6,
+      "reasoning": "RSI=43, MACD_hist=0.050, golden_cross=False \u2192 score=2"
+    },
+    {
+      "agent": "sentiment",
+      "ticker": "META",
+      "signal": "HOLD",
+      "confidence": 0.5,
+      "reasoning": "news=0.30, social=0.20, insider_buying=False \u2192 score=0"
+    },
+    {
+      "agent": "macro",
+      "ticker": "META",
+      "signal": "BUY",
+      "confidence": 0.5,
+      "reasoning": "GDP=2.8%, fed_rate=5.0%, inflation=3.2%, sector=neutral \u2192 score=1"
+    }
+  ],
+  "run_timestamp": "2026-07-31T18:37:45.237736+00:00"
+}
