@@ -26,11 +26,11 @@ const AGENT_ICON: Record<string, string> = {
 };
 
 const TICKER_LABEL: Record<string, string> = {
-  AAPL: "AAPL — consensus BUY",
-  MSFT: "MSFT — extreme disagreement",
-  NVDA: "NVDA — consensus STRONG BUY",
-  TSLA: "TSLA — tech vs fundamental",
-  META: "META — risk veto (vol)",
+  AAPL: "AAPL — baseline",
+  MSFT: "MSFT — baseline",
+  NVDA: "NVDA — baseline",
+  TSLA: "TSLA — tech vs fundamental disagreement",
+  META: "META — risk veto (volatility)",
 };
 
 const S = {
@@ -231,7 +231,10 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
           Backtest Results
           <span style={S.badge(false)}>REAL DATA</span>
         </p>
-        <p style={{ fontSize: 12, color: "#64748b", marginTop: -8, marginBottom: 16 }}>
+        <p style={{ fontSize: 12, color: "#64748b", marginTop: -8, marginBottom: 4 }}>
+          Fixed universe: AAPL · MSFT · NVDA — these numbers do not change with the ticker selected above.
+        </p>
+        <p style={{ fontSize: 12, color: "#64748b", marginTop: 0, marginBottom: 16 }}>
           {BACKTEST.period} · <strong style={{ color: "#475569" }}>Rule-based approximation</strong> — the backtest
           uses deterministic SMA/momentum/mean-reversion agents, not the LLM-powered agents shown in the cards above.
           Results represent the algorithmic signal engine only.
