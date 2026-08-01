@@ -98,7 +98,7 @@ const EQUITY_BNH   = [100.0, 113.0, 122.0, 146.6, 152.9, 181.5, 197.6, 201.2, 20
 const EQUITY_LABELS = ["Jan 1", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function EquityCurve() {
-  const VW = 560, VH = 160, PL = 44, PR = 16, PT = 20, PB = 30;
+  const VW = 560, VH = 190, PL = 44, PR = 16, PT = 14, PB = 36;
   const cw = VW - PL - PR, ch = VH - PT - PB;
   const n = EQUITY_WALSH.length;
   const yMin = 88, yMax = 232, yRange = yMax - yMin;
@@ -108,42 +108,45 @@ function EquityCurve() {
   const pts = (arr: number[]) => arr.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(" ");
 
   const gridYs = [100, 125, 150, 175, 200];
-  // Show labels at Jan 1, Apr, Jul, Oct, Dec
   const showLabel = [0, 3, 6, 9, 12];
 
   return (
-    <svg viewBox={`0 0 ${VW} ${VH}`} width="100%" height={VH} style={{ display: "block", overflow: "visible" }}>
-      {/* horizontal grid lines */}
-      {gridYs.map(v => (
-        <line key={v} x1={PL} x2={VW - PR} y1={py(v).toFixed(1)} y2={py(v).toFixed(1)}
-          stroke="#2d2d36" strokeWidth={1} />
-      ))}
-      {/* y-axis labels */}
-      {[100, 150, 200].map(v => (
-        <text key={v} x={PL - 6} y={(py(v) + 4).toFixed(1)}
-          textAnchor="end" fontSize={10} fill="#475569">{v}%</text>
-      ))}
-      {/* x-axis labels */}
-      {showLabel.map(i => (
-        <text key={i} x={px(i).toFixed(1)} y={VH - 6}
-          textAnchor="middle" fontSize={10} fill="#475569">{EQUITY_LABELS[i]}</text>
-      ))}
-      {/* BnH line (dashed, muted) */}
-      <polyline points={pts(EQUITY_BNH)} fill="none" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
-      {/* Walsh line */}
-      <polyline points={pts(EQUITY_WALSH)} fill="none" stroke="#6366f1" strokeWidth={2} />
-      {/* end-point dots */}
-      <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_WALSH[n - 1]).toFixed(1)} r={3} fill="#6366f1" />
-      <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_BNH[n - 1]).toFixed(1)} r={3} fill="#64748b" />
-      {/* legend */}
-      <line x1={VW - 138} x2={VW - 118} y1={PT + 8} y2={PT + 8} stroke="#6366f1" strokeWidth={2} />
-      <text x={VW - 114} y={PT + 12} fontSize={10} fill="#94a3b8">Walsh (+75.5%)</text>
-      <line x1={VW - 44} x2={VW - 24} y1={PT + 8} y2={PT + 8} stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
-      <text x={VW - 20} y={PT + 12} fontSize={10} fill="#94a3b8" textAnchor="start">{/* spacer */}</text>
-      {/* second legend row */}
-      <line x1={VW - 138} x2={VW - 118} y1={PT + 22} y2={PT + 22} stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
-      <text x={VW - 114} y={PT + 26} fontSize={10} fill="#94a3b8">B&amp;H (+119.8%)</text>
-    </svg>
+    <div>
+      {/* height:auto lets the SVG scale proportionally at all widths — no fixed height that clips at mobile */}
+      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ display: "block", width: "100%", height: "auto", overflow: "visible" }}>
+        {gridYs.map(v => (
+          <line key={v} x1={PL} x2={VW - PR} y1={py(v).toFixed(1)} y2={py(v).toFixed(1)}
+            stroke="#2d2d36" strokeWidth={1} />
+        ))}
+        {[100, 150, 200].map(v => (
+          <text key={v} x={PL - 6} y={(py(v) + 4).toFixed(1)}
+            textAnchor="end" fontSize={12} fill="#475569">{v}%</text>
+        ))}
+        {showLabel.map(i => (
+          <text key={i} x={px(i).toFixed(1)} y={VH - 10}
+            textAnchor="middle" fontSize={12} fill="#475569">{EQUITY_LABELS[i]}</text>
+        ))}
+        <polyline points={pts(EQUITY_BNH)} fill="none" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
+        <polyline points={pts(EQUITY_WALSH)} fill="none" stroke="#6366f1" strokeWidth={2} />
+        <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_WALSH[n - 1]).toFixed(1)} r={3} fill="#6366f1" />
+        <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_BNH[n - 1]).toFixed(1)} r={3} fill="#64748b" />
+      </svg>
+      {/* Legend as HTML so it stacks cleanly on mobile instead of cramping into SVG top-right */}
+      <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: 6, flexWrap: "wrap" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+          <svg width={20} height={10} style={{ display: "block", flexShrink: 0 }}>
+            <line x1={0} y1={5} x2={20} y2={5} stroke="#6366f1" strokeWidth={2} />
+          </svg>
+          Walsh (+75.5%)
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+          <svg width={20} height={10} style={{ display: "block", flexShrink: 0 }}>
+            <line x1={0} y1={5} x2={20} y2={5} stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
+          </svg>
+          B&amp;H (+119.8%)
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -186,7 +189,9 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
         on AAPL/MSFT/NVDA, underperforming by ~44 pp. The primary cause is that the volatility damper
         (vol_cap=40%) zeroed out NVDA allocation — the period's biggest winner — while the mean-reversion
         agent added conflicting SELL signals in a one-directional trend year. Signal weighting needs tuning
-        before this strategy is suitable for live deployment.
+        before this strategy is suitable for live deployment. The immediate next step is replacing the hard
+        vol_cap=40% binary cutoff in RiskManager.adjust() with continuous position-size scaling — linearly
+        reducing allocation as volatility rises past a threshold, rather than zeroing it out entirely.
       </div>
 
       <select
