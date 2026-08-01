@@ -6,7 +6,6 @@ from typing import Any
 
 from agents.base import Agent
 from agents.schema import AgentThesis
-from agents.sentiment import SentimentAgent
 
 
 class ScaffoldAgent(Agent):
