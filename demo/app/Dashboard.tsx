@@ -49,7 +49,7 @@ const S = {
     outline: "none", marginBottom: 32, width: 240,
   } as const,
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 32 } as const,
-  card: { background: "#1a1a22", borderRadius: 12, padding: "20px 20px 16px", border: "1px solid #2d2d36" } as const,
+  card: { background: "#1a1a22", borderRadius: 12, padding: "20px 20px 16px", border: "1px solid #2d2d36", boxShadow: "0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)" } as const,
   cardAgent: { fontSize: 12, color: "#64748b", marginBottom: 4 } as const,
   cardSignal: { fontSize: 22, fontWeight: 700, marginBottom: 4 } as const,
   cardConf: { fontSize: 13, color: "#94a3b8", marginBottom: 10 } as const,
