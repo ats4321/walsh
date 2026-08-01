@@ -61,7 +61,7 @@ function convictionRgba(signal: string, confidence: number): string {
   return `rgba(${signalRgb(signal)}, ${confidenceAlpha(confidence).toFixed(2)})`;
 }
 
-const CARD_ELEVATION = "0 4px 12px rgba(0,0,0,0.4)";
+const CARD_ELEVATION = "0 8px 32px rgba(0,0,0,0.8)";
 
 // Box-shadow keeps every card visibly elevated while the ring alpha is direct confidence.
 function agentCardShadow(signal: string, confidence: number, hovered: boolean): string {
@@ -86,7 +86,7 @@ const T = {
 const cardStyle = {
   background: "#111118",
   borderRadius: 12,
-  boxShadow: `${CARD_ELEVATION}, 0 0 0 1px rgba(255,255,255,0.06)`,
+  boxShadow: `${CARD_ELEVATION}, 0 0 0 1px rgba(255,255,255,0.12)`,
 };
 
 // ─── Static chart data ────────────────────────────────────────────────────────
@@ -331,7 +331,7 @@ function HeaderBar({ ticker, run }: { ticker: string; run: TickerRun }) {
 export default function Dashboard({ runs, tickers }: { runs: Record<string, TickerRun>; tickers: string[] }) {
   const [ticker, setTicker] = useState(tickers[0]);
   const run = runs[ticker];
-  const finalColor = convictionRgba(run.signal, run.confidence);
+  const finalColor = signalColor(run.signal);
   const riskStatusColor = run.approved ? signalColor("BUY") : signalColor("SELL");
 
   return (
@@ -484,7 +484,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
             {/* ── Stats row ABOVE chart ── */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}>
                 <div style={T.label}>Sharpe Ratio</div>
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.sharpe}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
@@ -493,7 +493,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}>
                 <div style={T.label}>Total Return</div>
                 {/* Positive value stays neutral — the red delta badge communicates underperformance */}
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.walshReturn}</div>
@@ -503,7 +503,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}>
                 <div style={T.label}>Win Rate</div>
                 <div style={{ ...T.hero, marginTop: 8, color: "#22c55e" }}>{BACKTEST.winRate}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
