@@ -35,19 +35,16 @@ function cT(confidence: number): number {
   return (confidence - 0.5) / 0.3;
 }
 
-// Confidence tiers: <60% muted, 60-75% standard, 75%+ saturated
-function signalColor(signal: string, confidence: number): string {
+function signalRgb(signal: string): string {
   const up = signal === "STRONG_BUY" || signal === "BUY";
   const dn = signal === "STRONG_SELL" || signal === "SELL";
-  if (!up && !dn) return "#64748b";
-  if (up) {
-    if (confidence >= 0.75) return "#16a34a";
-    if (confidence >= 0.60) return "#22c55e";
-    return "#4ade80";
-  }
-  if (confidence >= 0.75) return "#dc2626";
-  if (confidence >= 0.60) return "#ef4444";
-  return "#fca5a5";
+  if (up) return "34, 197, 94";
+  if (dn) return "239, 68, 68";
+  return "100, 116, 139";
+}
+
+function signalColor(signal: string): string {
+  return `rgb(${signalRgb(signal)})`;
 }
 
 // Signal font size scales with conviction — continuous, not stepped
@@ -55,23 +52,22 @@ function signalFontSize(confidence: number): number {
   return Math.round(lerp(13, 21, cT(confidence)));
 }
 
-// Convert 0-1 alpha to two-digit hex for embedding in color strings
-function ax(alpha: number): string {
-  return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0");
+function confidenceAlpha(confidence: number): number {
+  return Math.max(0, Math.min(1, confidence));
 }
 
-// Box-shadow encodes both elevation AND confidence — ring alpha and glow both interpolate.
+// Conviction-continuous rgba — alpha = confidence directly, no thresholds
+function convictionRgba(signal: string, confidence: number): string {
+  return `rgba(${signalRgb(signal)}, ${confidenceAlpha(confidence).toFixed(2)})`;
+}
+
+const CARD_ELEVATION = "0 4px 12px rgba(0,0,0,0.4)";
+
+// Box-shadow keeps every card visibly elevated while the ring alpha is direct confidence.
 function agentCardShadow(signal: string, confidence: number, hovered: boolean): string {
-  const color = signalColor(signal, confidence);
-  const neutral = signal === "HOLD" || signal === "UNKNOWN";
-  const t = cT(confidence);
-  const ringAlpha = neutral ? 0.07 : lerp(0.08, 0.44, t);
-  // Glow starts fading in above 65% confidence
-  const glowOpacity = neutral ? 0 : lerp(0, 0.14, Math.max(0, (confidence - 0.65) / 0.15));
-  const glow = glowOpacity > 0.005 ? `, 0 0 20px ${color}${ax(glowOpacity)}` : "";
   return hovered
-    ? `0 0 0 1.5px ${color}${ax(Math.min(ringAlpha * 1.6, 0.7))}, 0 14px 32px rgba(0,0,0,0.65)${glow}`
-    : `0 0 0 1px ${color}${ax(ringAlpha)}, 0 4px 12px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.35)${glow}`;
+    ? `0 8px 20px rgba(0,0,0,0.55), 0 0 0 1px ${convictionRgba(signal, confidence)}`
+    : `${CARD_ELEVATION}, 0 0 0 1px ${convictionRgba(signal, confidence)}`;
 }
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -90,7 +86,7 @@ const T = {
 const cardStyle = {
   background: "#111118",
   borderRadius: 12,
-  boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3)",
+  boxShadow: `${CARD_ELEVATION}, 0 0 0 1px rgba(255,255,255,0.06)`,
 };
 
 // ─── Static chart data ────────────────────────────────────────────────────────
@@ -185,13 +181,9 @@ function ConfBar({ value, color }: { value: number; color: string }) {
 
 function AgentCard({ thesis }: { thesis: AgentThesis }) {
   const [hovered, setHovered] = useState(false);
-  const color = signalColor(thesis.signal, thesis.confidence);
   const conf = thesis.confidence;
   const confPct = Math.round(conf * 100);
-  // Border thickness + opacity interpolate continuously 50% → 80%
-  const t = cT(conf);
-  const borderW = lerp(0.75, 2.5, t).toFixed(2);
-  const borderAlpha = lerp(0.16, 0.90, t);
+  const convictionColor = convictionRgba(thesis.signal, conf);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -199,7 +191,8 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
       style={{
         ...cardStyle,
         padding: "16px",
-        borderTop: `${borderW}px solid ${color}${ax(borderAlpha)}`,
+        border: `1px solid ${convictionColor}`,
+        boxSizing: "border-box",
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
         boxShadow: agentCardShadow(thesis.signal, conf, hovered),
         transition: "transform 0.14s ease, box-shadow 0.14s ease",
@@ -218,7 +211,7 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
         fontSize: signalFontSize(thesis.confidence),
         fontWeight: 800,
         letterSpacing: "-0.3px",
-        color,
+        color: convictionColor,
         marginBottom: 6,
         lineHeight: 1,
       }}>
@@ -229,13 +222,13 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
       <div style={{
         ...T.body,
         fontSize: 12,
-        fontWeight: conf >= 0.72 ? 600 : 400,
-        color: conf >= 0.72 ? "#94a3b8" : "#475569",
+        fontWeight: Math.round(400 + confidenceAlpha(conf) * 250),
+        color: `rgba(148, 163, 184, ${confidenceAlpha(conf).toFixed(2)})`,
         marginBottom: 4,
       }}>
         {confPct}% confidence
       </div>
-      <ConfBar value={thesis.confidence} color={color} />
+      <ConfBar value={thesis.confidence} color={convictionColor} />
 
       <div style={{ ...T.body, fontSize: 11.5, marginTop: 10, color: "#475569" }}>{thesis.reasoning}</div>
     </div>
@@ -291,7 +284,8 @@ function LimitationsBanner() {
 
 // Sticky header bar — shows the most important info without scrolling
 function HeaderBar({ ticker, run }: { ticker: string; run: TickerRun }) {
-  const color = signalColor(run.signal, run.confidence);
+  const color = signalColor(run.signal);
+  const colorRgb = signalRgb(run.signal);
   const reason = (!run.approved ? run.risk_notes : run.reasoning).split(".")[0];
   return (
     <div style={{
@@ -309,7 +303,7 @@ function HeaderBar({ ticker, run }: { ticker: string; run: TickerRun }) {
       {/* Signal badge */}
       <span style={{
         fontSize: 11, fontWeight: 700, letterSpacing: "0.4px",
-        color, background: `${color}18`, border: `1px solid ${color}35`,
+        color, background: `rgba(${colorRgb},0.10)`, border: `1px solid rgba(${colorRgb},0.22)`,
         borderRadius: 5, padding: "2px 8px",
       }}>
         {run.signal.replace("_", " ")}
@@ -337,16 +331,26 @@ function HeaderBar({ ticker, run }: { ticker: string; run: TickerRun }) {
 export default function Dashboard({ runs, tickers }: { runs: Record<string, TickerRun>; tickers: string[] }) {
   const [ticker, setTicker] = useState(tickers[0]);
   const run = runs[ticker];
-  const finalColor = signalColor(run.signal, run.confidence);
+  const finalColor = convictionRgba(run.signal, run.confidence);
+  const riskStatusColor = run.approved ? signalColor("BUY") : signalColor("SELL");
 
   return (
-    <>
+    <main className="walsh-dashboard-root">
       {/* Responsive styles + hover that can't be expressed in inline style */}
       <style>{`
-        /* Clip our own content. Note: viewport-fixed overlays (e.g. Vercel toolbar) are
-           positioned relative to the viewport and cannot be clipped by overflow rules here. */
-        html { overflow-x: hidden; }
-        body { overflow-x: hidden; position: relative; }
+        html, body { margin: 0; overflow-x: hidden; background: #09090e; }
+        body > :not(script):not(style):not(next-route-announcer):not(.walsh-dashboard-root) {
+          display: none !important;
+        }
+        .walsh-dashboard-root {
+          min-height: 100vh;
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: clip;
+          background: #09090e;
+          position: relative;
+          isolation: isolate;
+        }
         .analyst-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .synthesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .header-reason { display: block; min-width: 0; }
@@ -441,7 +445,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 padding: "5px 12px", borderRadius: 20, marginBottom: 12,
                 fontSize: 12, fontWeight: 700, letterSpacing: "0.2px",
                 background: run.approved ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-                color: run.approved ? "#22c55e" : "#ef4444",
+                color: riskStatusColor,
                 border: `1px solid ${run.approved ? "rgba(34,197,94,0.22)" : "rgba(239,68,68,0.22)"}`,
               }}>
                 {run.approved ? "✓ APPROVED" : "✕ VETOED"}
@@ -480,7 +484,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
             {/* ── Stats row ABOVE chart ── */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
                 <div style={T.label}>Sharpe Ratio</div>
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.sharpe}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
@@ -489,7 +493,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
                 <div style={T.label}>Total Return</div>
                 {/* Positive value stays neutral — the red delta badge communicates underperformance */}
                 <div style={{ ...T.hero, marginTop: 8 }}>{BACKTEST.walshReturn}</div>
@@ -499,7 +503,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3)" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "14px 16px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
                 <div style={T.label}>Win Rate</div>
                 <div style={{ ...T.hero, marginTop: 8, color: "#22c55e" }}>{BACKTEST.winRate}</div>
                 <div style={{ ...T.body, fontSize: 11, marginTop: 4 }}>
@@ -522,6 +526,6 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
         </section>
 
       </div>
-    </>
+    </main>
   );
 }
