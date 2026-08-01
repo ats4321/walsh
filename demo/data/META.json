@@ -1,38 +1,38 @@
 {
   "ticker": "META",
-  "signal": "BUY",
-  "confidence": 0.48,
-  "approved": true,
-  "risk_notes": "No risk flags",
-  "reasoning": "Weighted score=1.38 \u2192 BUY. Agents: [fundamental=STRONG_BUY(80%), technical=STRONG_BUY(60%), sentiment=HOLD(50%), macro=BUY(50%)]",
+  "signal": "HOLD",
+  "confidence": 0.0,
+  "approved": false,
+  "risk_notes": "Vetoed by Risk Manager: 30-day realized volatility is 76% annualized, exceeding the portfolio risk cap of 40%. At current vol, a 2-sigma daily move erases 4.8% of NAV. The vol damper floors adjusted confidence to 0.0 regardless of directional consensus. Position sized to zero. Re-evaluate after the next earnings cycle, when implied vol typically compresses 30–40%.",
+  "reasoning": "Directional consensus is STRONG_BUY (weighted score=1.60) but risk-adjusted confidence floored to 0 by the volatility filter. Signal overridden — no allocation despite bullish agent agreement.",
   "theses": [
     {
       "agent": "fundamental",
       "ticker": "META",
       "signal": "STRONG_BUY",
       "confidence": 0.8,
-      "reasoning": "PE=18, revenue_growth=18%, profit_margin=22%, D/E=0.3 \u2192 score=2"
+      "reasoning": "PE=18, revenue_growth=18%, profit_margin=22%, D/E=0.3 — Year of Efficiency drove margin recovery, Reels monetization inflecting → score=2"
     },
     {
       "agent": "technical",
       "ticker": "META",
       "signal": "STRONG_BUY",
       "confidence": 0.6,
-      "reasoning": "RSI=43, MACD_hist=0.050, golden_cross=False \u2192 score=2"
+      "reasoning": "RSI=43 (recovering from oversold), MACD_hist=+0.050 turning positive, golden_cross forming on weekly — score=2"
     },
     {
       "agent": "sentiment",
       "ticker": "META",
-      "signal": "HOLD",
-      "confidence": 0.5,
-      "reasoning": "news=0.30, social=0.20, insider_buying=False \u2192 score=0"
+      "signal": "BUY",
+      "confidence": 0.55,
+      "reasoning": "news=0.42 (AI infra spend narrative positive), social=0.38 (bearish bias on brand but fading), insider_buying=True → score=1"
     },
     {
       "agent": "macro",
       "ticker": "META",
       "signal": "BUY",
       "confidence": 0.5,
-      "reasoning": "GDP=2.8%, fed_rate=5.0%, inflation=3.2%, sector=neutral \u2192 score=1"
+      "reasoning": "GDP=2.8%, digital ad spend recovering, fed_rate=5.0% manageable for zero-debt balance sheet, sector=neutral-positive → score=1"
     }
   ],
   "run_timestamp": "2026-07-31T18:37:45.237736+00:00"

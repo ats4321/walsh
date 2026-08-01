@@ -90,6 +90,10 @@ Walsh underperformed buy-and-hold on this bull-market period. In Oct 2023, the p
 
 ## Known limitations / failure modes
 
+**Backtest underperformance (Jan–Dec 2023):** Walsh's rule-based backtest returned +75.5% vs +119.8% for equal-weight passive buy-and-hold on AAPL/MSFT/NVDA — underperforming by ~44 pp. The primary cause is the volatility damper (`vol_cap=40%` in `backtest/engine.py`) which zeroed out NVDA allocation for most of the year (NVDA realized vol was ~70-90%), combined with the `MeanReversionSignalAgent` issuing SELL signals on stocks hitting 52-week highs throughout the bull run. Signal weighting and the vol cap need tuning before this strategy is suitable for live deployment. More broadly, contrarian strategies structurally underperform during sustained trending regimes — a more robust Walsh would detect trend vs. mean-reverting market conditions and scale the `MeanReversionSignalAgent`'s weight accordingly, rather than holding it constant across all regimes.
+
+**Backtest methodology clarification:** The backtest engine uses deterministic rule-based agents (SMA crossover, momentum, mean-reversion) — not the LLM-powered agents shown in the demo dashboard. The numbers above reflect the algorithmic signal engine only.
+
 These are documented findings from `eval/adversarial.py` (18 test cases, 5 flagged):
 
 **TECH_003 — Zigzag prices, overconfidence** (`confidence=0.80`, max expected `0.65`)
@@ -119,7 +123,15 @@ A one-day spike inflates the 20d momentum calculation and pushes price above bot
 
 Live dashboard at **[demo-cyan-delta.vercel.app](https://demo-cyan-delta.vercel.app)**
 
-The dashboard shows 5 pre-generated ticker runs (AAPL, MSFT, NVDA, TSLA, META). Use the dropdown to switch tickers. MSFT demonstrates a full Risk Manager veto — extreme disagreement between agents (Fundamental=SELL, Technical=STRONG_BUY, Macro=STRONG_SELL, Sentiment=STRONG_BUY) triggers both veto rules simultaneously.
+The dashboard shows 5 pre-generated ticker runs selectable via dropdown, each illustrating a distinct pipeline outcome:
+
+| Ticker | Story |
+|---|---|
+| **AAPL** | All four agents agree → BUY, approved |
+| **MSFT** | Extreme disagreement (Fundamental=SELL vs Technical=STRONG_BUY) → vetoed |
+| **NVDA** | All four agents strongly agree → STRONG_BUY, approved |
+| **TSLA** | Agent split: Fundamental=BUY vs Technical=SELL (180° opposition) → vetoed, no position |
+| **META** | Agents agree (STRONG_BUY consensus) but Risk Manager vetoes due to 76% annualized volatility exceeding the 40% risk cap |
 
 **Terminal reproduction** (no GIF yet — recording pending):
 ```bash

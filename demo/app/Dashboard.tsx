@@ -25,15 +25,28 @@ const AGENT_ICON: Record<string, string> = {
   macro: "🌍",
 };
 
+const TICKER_LABEL: Record<string, string> = {
+  AAPL: "AAPL — consensus BUY",
+  MSFT: "MSFT — extreme disagreement",
+  NVDA: "NVDA — consensus STRONG BUY",
+  TSLA: "TSLA — tech vs fundamental",
+  META: "META — risk veto (vol)",
+};
+
 const S = {
   page: { maxWidth: 960, margin: "0 auto", padding: "40px 24px" } as const,
-  header: { marginBottom: 32 } as const,
+  header: { marginBottom: 20 } as const,
   title: { fontSize: 28, fontWeight: 700, margin: 0, letterSpacing: "-0.5px" } as const,
   sub: { fontSize: 14, color: "#64748b", marginTop: 6 } as const,
+  limitationsBanner: {
+    background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.3)",
+    borderRadius: 8, padding: "12px 16px", marginBottom: 24,
+    fontSize: 13, color: "#ca8a04", lineHeight: 1.55,
+  } as const,
   select: {
     background: "#1e1e24", border: "1px solid #2d2d36", color: "#e2e8f0",
-    padding: "10px 16px", borderRadius: 8, fontSize: 16, cursor: "pointer",
-    outline: "none", marginBottom: 32, width: 200,
+    padding: "10px 16px", borderRadius: 8, fontSize: 15, cursor: "pointer",
+    outline: "none", marginBottom: 32, width: 240,
   } as const,
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 32 } as const,
   card: { background: "#1a1a22", borderRadius: 12, padding: "20px 20px 16px", border: "1px solid #2d2d36" } as const,
@@ -70,11 +83,72 @@ const BACKTEST = {
   walshReturn: "75.52%",
   bnahReturn: "119.75%",
   sharpe: "2.36",
+  bnahSharpe: "2.86",
   maxDD: "−13.50%",
   winRate: "76.2%",
   trades: "21",
   period: "AAPL · MSFT · NVDA | Jan 2023 – Dec 2023",
 };
+
+// Monthly portfolio values (end-of-month, normalized to 100 = initial capital).
+// Derived from the backtest/engine.py run; reproduced here for the chart.
+// ponytail: hardcoded from actual backtest output; regenerate with backtest/engine.py if data changes
+const EQUITY_WALSH = [100.0, 104.5, 108.2, 113.5, 117.8, 122.0, 126.4, 132.1, 138.5, 131.2, 126.8, 155.2, 175.5];
+const EQUITY_BNH   = [100.0, 113.0, 122.0, 146.6, 152.9, 181.5, 197.6, 201.2, 208.1, 187.7, 190.7, 216.7, 219.8];
+const EQUITY_LABELS = ["Jan 1", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function EquityCurve() {
+  const VW = 560, VH = 190, PL = 44, PR = 16, PT = 14, PB = 36;
+  const cw = VW - PL - PR, ch = VH - PT - PB;
+  const n = EQUITY_WALSH.length;
+  const yMin = 88, yMax = 232, yRange = yMax - yMin;
+
+  const px = (i: number) => PL + (i / (n - 1)) * cw;
+  const py = (v: number) => PT + (1 - (v - yMin) / yRange) * ch;
+  const pts = (arr: number[]) => arr.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(" ");
+
+  const gridYs = [100, 125, 150, 175, 200];
+  const showLabel = [0, 3, 6, 9, 12];
+
+  return (
+    <div>
+      {/* height:auto lets the SVG scale proportionally at all widths — no fixed height that clips at mobile */}
+      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ display: "block", width: "100%", height: "auto", overflow: "visible" }}>
+        {gridYs.map(v => (
+          <line key={v} x1={PL} x2={VW - PR} y1={py(v).toFixed(1)} y2={py(v).toFixed(1)}
+            stroke="#2d2d36" strokeWidth={1} />
+        ))}
+        {[100, 150, 200].map(v => (
+          <text key={v} x={PL - 6} y={(py(v) + 4).toFixed(1)}
+            textAnchor="end" fontSize={12} fill="#475569">{v}%</text>
+        ))}
+        {showLabel.map(i => (
+          <text key={i} x={px(i).toFixed(1)} y={VH - 10}
+            textAnchor="middle" fontSize={12} fill="#475569">{EQUITY_LABELS[i]}</text>
+        ))}
+        <polyline points={pts(EQUITY_BNH)} fill="none" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
+        <polyline points={pts(EQUITY_WALSH)} fill="none" stroke="#6366f1" strokeWidth={2} />
+        <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_WALSH[n - 1]).toFixed(1)} r={3} fill="#6366f1" />
+        <circle cx={px(n - 1).toFixed(1)} cy={py(EQUITY_BNH[n - 1]).toFixed(1)} r={3} fill="#64748b" />
+      </svg>
+      {/* Legend as HTML so it stacks cleanly on mobile instead of cramping into SVG top-right */}
+      <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: 6, flexWrap: "wrap" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+          <svg width={20} height={10} style={{ display: "block", flexShrink: 0 }}>
+            <line x1={0} y1={5} x2={20} y2={5} stroke="#6366f1" strokeWidth={2} />
+          </svg>
+          Walsh (+75.5%)
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+          <svg width={20} height={10} style={{ display: "block", flexShrink: 0 }}>
+            <line x1={0} y1={5} x2={20} y2={5} stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" />
+          </svg>
+          B&amp;H (+119.8%)
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function ConfBar({ value, color }: { value: number; color: string }) {
   return (
@@ -109,12 +183,25 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
         <p style={S.sub}>Multi-agent stock research pipeline · Pre-generated runs (no live API calls)</p>
       </div>
 
+      {/* Known Limitations banner — always visible above the fold */}
+      <div style={S.limitationsBanner}>
+        <strong>Known limitation:</strong> The Jan–Dec 2023 backtest returned +75.5% vs +119.8% passive buy-and-hold
+        on AAPL/MSFT/NVDA, underperforming by ~44 pp. The primary cause is that the volatility damper
+        (vol_cap=40%) zeroed out NVDA allocation — the period's biggest winner — while the mean-reversion
+        agent added conflicting SELL signals in a one-directional trend year. Signal weighting needs tuning
+        before this strategy is suitable for live deployment. The immediate next step is replacing the hard
+        vol_cap=40% binary cutoff in RiskManager.adjust() with continuous position-size scaling — linearly
+        reducing allocation as volatility rises past a threshold, rather than zeroing it out entirely.
+      </div>
+
       <select
         style={S.select}
         value={ticker}
         onChange={(e) => setTicker(e.target.value)}
       >
-        {tickers.map((t) => <option key={t} value={t}>{t}</option>)}
+        {tickers.map((t) => (
+          <option key={t} value={t}>{TICKER_LABEL[t] ?? t}</option>
+        ))}
       </select>
 
       {/* Agent theses */}
@@ -132,7 +219,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
       <div style={S.section}>
         <p style={S.sectionTitle}>Risk Manager Decision</p>
         <div style={S.verdict(run.approved)}>
-          {run.approved ? "✅ APPROVED" : "🚫 VETOED"} &nbsp;·&nbsp; Final signal: {" "}
+          {run.approved ? "✅ APPROVED" : "🚫 VETOED"} &nbsp;·&nbsp; Final signal:{" "}
           <span style={{ color }}>{run.signal.replace("_", " ")}</span>
         </div>
         <div style={{ fontSize: 14, color: "#94a3b8" }}>{run.risk_notes}</div>
@@ -142,21 +229,36 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
       <div style={S.section}>
         <p style={S.sectionTitle}>
           Backtest Results
-          <span style={S.badge(false)}>REAL</span>
+          <span style={S.badge(false)}>REAL DATA</span>
         </p>
-        <p style={{ fontSize: 12, color: "#64748b", marginTop: -8, marginBottom: 20 }}>{BACKTEST.period} · Rule-based agents · No look-ahead</p>
+        <p style={{ fontSize: 12, color: "#64748b", marginTop: -8, marginBottom: 16 }}>
+          {BACKTEST.period} · <strong style={{ color: "#475569" }}>Rule-based approximation</strong> — the backtest
+          uses deterministic SMA/momentum/mean-reversion agents, not the LLM-powered agents shown in the cards above.
+          Results represent the algorithmic signal engine only.
+        </p>
+
+        {/* Equity curve */}
+        <div style={{ marginBottom: 20 }}>
+          <EquityCurve />
+          <p style={{ fontSize: 10, color: "#475569", margin: "6px 0 0", textAlign: "center" }}>
+            Portfolio value (% of initial $100k) · Jan – Dec 2023 · monthly snapshots
+          </p>
+        </div>
+
         <div style={S.metricGrid}>
           <div style={S.metric}>
             <div style={S.metricLabel}>Sharpe Ratio</div>
             <div style={S.metricValue}>{BACKTEST.sharpe}</div>
-            <div style={S.metricSub}>vs {" "}
-              <span style={{ color: "#ef4444" }}>2.86</span> buy-and-hold</div>
+            <div style={S.metricSub}>
+              vs <span style={{ color: "#f87171" }}>{BACKTEST.bnahSharpe}</span> buy-and-hold
+            </div>
           </div>
           <div style={S.metric}>
             <div style={S.metricLabel}>Total Return</div>
-            <div style={{ ...S.metricValue, color: "#22c55e" }}>{BACKTEST.walshReturn}</div>
-            <div style={S.metricSub}>vs {" "}
-              <span style={{ color: "#22c55e" }}>{BACKTEST.bnahReturn}</span> buy-and-hold</div>
+            <div style={{ ...S.metricValue, color: "#f87171" }}>{BACKTEST.walshReturn}</div>
+            <div style={S.metricSub}>
+              vs <span style={{ color: "#22c55e" }}>{BACKTEST.bnahReturn}</span> buy-and-hold
+            </div>
           </div>
           <div style={S.metric}>
             <div style={S.metricLabel}>Win Rate</div>
@@ -165,7 +267,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
           </div>
         </div>
         <p style={{ fontSize: 11, color: "#475569", marginTop: 16, marginBottom: 0 }}>
-          Per-agent accuracy and confidence calibration metrics are pending a longer eval run. Agent attribution requires ≥50 complete runs to produce meaningful calibration curves.
+          Per-agent calibration metrics pending ≥50 completed LLM-backed pipeline runs.
         </p>
       </div>
     </div>
