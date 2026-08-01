@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import type { TickerRun, AgentThesis } from "./page";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -47,6 +47,23 @@ function signalFontSize(confidence: number): number {
   if (confidence >= 0.75) return 20;
   if (confidence >= 0.60) return 17;
   return 14;
+}
+
+// Convert 0-1 alpha to two-digit hex for embedding in color strings
+function ax(alpha: number): string {
+  return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0");
+}
+
+// Box-shadow that encodes both elevation AND confidence.
+// High-confidence cards: colored ring + soft glow. Low-confidence: neutral ring only.
+function agentCardShadow(signal: string, confidence: number, hovered: boolean): string {
+  const color = signalColor(signal, confidence);
+  const neutral = signal === "HOLD" || signal === "UNKNOWN";
+  const ringAlpha = neutral ? 0.07 : confidence >= 0.75 ? 0.40 : confidence >= 0.60 ? 0.20 : 0.09;
+  const glow = !neutral && confidence >= 0.75 ? `, 0 0 20px ${color}${ax(0.14)}` : "";
+  return hovered
+    ? `0 0 0 1px ${color}${ax(Math.min(ringAlpha * 1.6, 0.7))}, 0 14px 32px rgba(0,0,0,0.65)${glow}`
+    : `0 0 0 1px ${color}${ax(ringAlpha)}, 0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)${glow}`;
 }
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -161,7 +178,11 @@ function ConfBar({ value, color }: { value: number; color: string }) {
 function AgentCard({ thesis }: { thesis: AgentThesis }) {
   const [hovered, setHovered] = useState(false);
   const color = signalColor(thesis.signal, thesis.confidence);
-  const confPct = Math.round(thesis.confidence * 100);
+  const conf = thesis.confidence;
+  const confPct = Math.round(conf * 100);
+  // Top border thickness + opacity both scale with confidence
+  const borderW = conf >= 0.75 ? 2 : conf >= 0.60 ? 1.5 : 1;
+  const borderAlpha = conf >= 0.75 ? 0.90 : conf >= 0.60 ? 0.55 : 0.28;
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -169,11 +190,9 @@ function AgentCard({ thesis }: { thesis: AgentThesis }) {
       style={{
         ...cardStyle,
         padding: "16px",
-        borderTop: `2px solid ${color}`,
+        borderTop: `${borderW}px solid ${color}${ax(borderAlpha)}`,
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
-        boxShadow: hovered
-          ? `0 0 0 1px rgba(255,255,255,0.08), 0 12px 32px rgba(0,0,0,0.6)`
-          : cardStyle.boxShadow,
+        boxShadow: agentCardShadow(thesis.signal, conf, hovered),
         transition: "transform 0.14s ease, box-shadow 0.14s ease",
       }}
     >
@@ -315,9 +334,11 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
     <>
       {/* Responsive styles + hover that can't be expressed in inline style */}
       <style>{`
+        /* Prevent any off-screen content from creating horizontal scroll */
+        html, body { overflow-x: hidden; }
         .analyst-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .synthesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .header-reason { display: block; }
+        .header-reason { display: block; min-width: 0; }
         @media (max-width: 800px) {
           .analyst-grid { grid-template-columns: repeat(2, 1fr); }
           .synthesis-grid { grid-template-columns: 1fr; }
@@ -332,7 +353,7 @@ export default function Dashboard({ runs, tickers }: { runs: Record<string, Tick
 
       <HeaderBar ticker={ticker} run={run} />
 
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 24px 64px" }}>
+      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 24px 64px", position: "relative", isolation: "isolate" } as React.CSSProperties}>
 
         {/* Page title */}
         <div style={{ marginBottom: 32 }}>
