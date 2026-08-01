@@ -1,0 +1,39 @@
+{
+  "ticker": "NVDA",
+  "signal": "STRONG_BUY",
+  "confidence": 0.75,
+  "approved": true,
+  "risk_notes": "No risk flags",
+  "reasoning": "Weighted score=2.00 \u2192 STRONG_BUY. Agents: [fundamental=STRONG_BUY(80%), technical=STRONG_BUY(70%), sentiment=STRONG_BUY(70%), macro=STRONG_BUY(80%)]",
+  "theses": [
+    {
+      "agent": "fundamental",
+      "ticker": "NVDA",
+      "signal": "STRONG_BUY",
+      "confidence": 0.8,
+      "reasoning": "PE=28, revenue_growth=22%, profit_margin=55%, D/E=0.3 \u2192 score=2"
+    },
+    {
+      "agent": "technical",
+      "ticker": "NVDA",
+      "signal": "STRONG_BUY",
+      "confidence": 0.7,
+      "reasoning": "RSI=38, MACD_hist=0.450, golden_cross=True \u2192 score=3"
+    },
+    {
+      "agent": "sentiment",
+      "ticker": "NVDA",
+      "signal": "STRONG_BUY",
+      "confidence": 0.7,
+      "reasoning": "news=0.70, social=0.80, insider_buying=True \u2192 score=2"
+    },
+    {
+      "agent": "macro",
+      "ticker": "NVDA",
+      "signal": "STRONG_BUY",
+      "confidence": 0.8,
+      "reasoning": "GDP=3.2%, fed_rate=3.3%, inflation=2.5%, sector=bullish \u2192 score=4"
+    }
+  ],
+  "run_timestamp": "2026-07-31T18:37:45.237195+00:00"
+}
