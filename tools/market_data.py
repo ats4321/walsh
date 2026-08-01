@@ -26,4 +26,3 @@ def get_price_history(ticker: str, days: int = 30) -> dict[str, Any]:
         "prices": [100.0 for _ in range(days)],
         "source": "mock",
     }
-

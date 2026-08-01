@@ -21,7 +21,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["agents*", "backtest*", "eval*"]
+include = ["agents*", "backtest*", "eval*", "tools*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

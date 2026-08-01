@@ -61,4 +61,3 @@ Subclasses should implement:
 - `build_prompt()` for the agent-specific prompt.
 - `parse_response(response)` to convert the Anthropic response into
   `AgentThesis`.
-

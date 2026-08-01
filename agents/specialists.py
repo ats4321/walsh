@@ -28,10 +28,6 @@ class TechnicalAgent(ScaffoldAgent):
     agent_name = "TechnicalAgent"
 
 
-class SentimentAgent(ScaffoldAgent):
-    agent_name = "SentimentAgent"
-
-
 class MacroAgent(ScaffoldAgent):
     agent_name = "MacroAgent"
 
@@ -42,4 +38,3 @@ class RiskManagerAgent(ScaffoldAgent):
 
 class PortfolioManagerAgent(ScaffoldAgent):
     agent_name = "PortfolioManagerAgent"
-
