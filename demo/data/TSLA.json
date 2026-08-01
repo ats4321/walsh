@@ -1,0 +1,39 @@
+{
+  "ticker": "TSLA",
+  "signal": "HOLD",
+  "confidence": 0.441,
+  "approved": false,
+  "risk_notes": "Confidence 44% below 45% threshold",
+  "reasoning": "Weighted score=-0.59 \u2192 SELL. Agents: [fundamental=SELL(65%), technical=SELL(50%), sentiment=HOLD(41%), macro=HOLD(40%)]",
+  "theses": [
+    {
+      "agent": "fundamental",
+      "ticker": "TSLA",
+      "signal": "SELL",
+      "confidence": 0.65,
+      "reasoning": "PE=65, revenue_growth=3%, profit_margin=8%, D/E=0.5 \u2192 score=-1"
+    },
+    {
+      "agent": "technical",
+      "ticker": "TSLA",
+      "signal": "SELL",
+      "confidence": 0.5,
+      "reasoning": "RSI=53, MACD_hist=-0.030, golden_cross=False \u2192 score=-1"
+    },
+    {
+      "agent": "sentiment",
+      "ticker": "TSLA",
+      "signal": "HOLD",
+      "confidence": 0.41,
+      "reasoning": "news=0.05, social=-0.10, insider_buying=False \u2192 score=0"
+    },
+    {
+      "agent": "macro",
+      "ticker": "TSLA",
+      "signal": "HOLD",
+      "confidence": 0.4,
+      "reasoning": "GDP=2.1%, fed_rate=5.5%, inflation=3.8%, sector=neutral \u2192 score=0"
+    }
+  ],
+  "run_timestamp": "2026-07-31T18:37:45.237466+00:00"
+}
