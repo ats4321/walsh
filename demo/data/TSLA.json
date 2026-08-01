@@ -1,0 +1,39 @@
+{
+  "ticker": "TSLA",
+  "signal": "HOLD",
+  "confidence": 0.398,
+  "approved": false,
+  "risk_notes": "Vetoed: Fundamental and Technical agents are 180° opposed (BUY vs SELL). Deploying capital into a split-signal position violates the minimum-consensus rule — at least 2 agents must be directionally aligned. The confidence-weighted score is near zero (0.05), confirming no actionable edge. Hold cash and re-evaluate after next earnings.",
+  "reasoning": "Weighted score=0.05 → HOLD. Agents split: [fundamental=BUY(72%), technical=SELL(68%), sentiment=HOLD(38%), macro=HOLD(42%)]",
+  "theses": [
+    {
+      "agent": "fundamental",
+      "ticker": "TSLA",
+      "signal": "BUY",
+      "confidence": 0.72,
+      "reasoning": "PE=47 declining (was 90), revenue_growth=19%, energy+services margin expansion, Cybertruck ramp Q4, D/E=0.3 — improving fundamentals score=1"
+    },
+    {
+      "agent": "technical",
+      "ticker": "TSLA",
+      "signal": "SELL",
+      "confidence": 0.68,
+      "reasoning": "Death cross (SMA50 crossed below SMA200), RSI=63 (overbought), MACD bearish divergence on weekly — price rejected at $280 resistance → score=-2"
+    },
+    {
+      "agent": "sentiment",
+      "ticker": "TSLA",
+      "signal": "HOLD",
+      "confidence": 0.38,
+      "reasoning": "news=0.12 (CEO distraction, recall headlines), social=0.28 (fan base stable, bearish derivatives), insider_buying=False → score=0"
+    },
+    {
+      "agent": "macro",
+      "ticker": "TSLA",
+      "signal": "HOLD",
+      "confidence": 0.42,
+      "reasoning": "EV demand soft in Europe, high-rate environment pressures growth multiples, sector=neutral. Fed pivot not yet priced → score=0"
+    }
+  ],
+  "run_timestamp": "2026-07-31T18:37:45.237466+00:00"
+}
