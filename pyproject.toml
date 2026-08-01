@@ -1,9 +1,11 @@
 [project]
-name = "walsh-backtest"
+name = "walsh"
 version = "0.1.0"
-description = "Historical backtest and evaluation harness for Walsh."
+description = "Multi-agent trading research scaffold."
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "anthropic>=0.40.0",
     "yfinance>=0.2",
     "pydantic>=2.0",
 ]
@@ -19,7 +21,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["agents*", "backtest*", "eval*"]
+include = ["agents*", "backtest*", "eval*", "tools*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

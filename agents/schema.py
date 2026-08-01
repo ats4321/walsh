@@ -1,8 +1,4 @@
-"""Shared structured outputs for all Walsh agents.
-
-Matches charlotte/agents/schema.py exactly — reproduced here so this
-workspace is self-contained.
-"""
+"""Shared structured outputs for all Walsh agents."""
 
 from __future__ import annotations
 
