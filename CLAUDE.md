@@ -29,6 +29,28 @@ AgentThesis(
 )
 ```
 
+The schema is the shared contract between specialist agents, the Risk Manager,
+the Portfolio Manager, backtests, memory, and evals.
+
+# Project Structure
+
+- `agents/`: base class, shared schema, and agent implementations.
+- `tools/`: MCP-style tool interfaces. Current modules return mock data only.
+- `memory/`: future persistence and retrieval layer.
+- `backtest/`: future strategy simulation and historical replay.
+- `eval/`: future evaluation harnesses and quality checks.
+- `orchestrator/`: future multi-agent coordination workflows.
+- `tests/`: pytest coverage.
+
+# Coding Conventions
+
+- Use Python 3.11+.
+- Use Pydantic for all structured data exchanged between components.
+- Use pytest for tests.
+- Keep real API clients behind small interfaces so they can be mocked in tests.
+- Do not add real trading or portfolio logic in scaffold modules.
+- Do not make live external API calls in unit tests.
+
 # Agent Contract
 
 Any new agent MUST subclass `agents.base.Agent` and MUST return

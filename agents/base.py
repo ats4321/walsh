@@ -19,7 +19,11 @@ class AnthropicClientProtocol(Protocol):
 
 
 class Agent(ABC):
-    """Abstract parent for every Walsh specialist agent."""
+    """Abstract parent for every Walsh specialist agent.
+
+    Subclasses own prompt construction and response parsing. The base class owns
+    the Anthropic call path and enforces the `AgentThesis` return contract.
+    """
 
     agent_name: ClassVar[str] = "BaseAgent"
     default_model: ClassVar[str] = "claude-3-5-sonnet-latest"

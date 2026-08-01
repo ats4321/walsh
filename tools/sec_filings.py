@@ -1,10 +1,13 @@
-"""Fetch fundamental financial data from SEC filings.
+"""SEC filings tool interface (mock data).
 
 ponytail: mock data for now. Swap fetch_financials' body for a real EDGAR call
 (https://www.sec.gov/cgi-bin/browse-edgar) when live data is needed — the return
 shape (dict or None) is the contract callers depend on.
 """
+
 from __future__ import annotations
+
+from typing import Any
 
 # Latest-annual snapshot per ticker. Numbers are illustrative.
 _MOCK = {
@@ -38,3 +41,18 @@ _MOCK = {
 def fetch_financials(ticker: str) -> dict | None:
     """Return fundamental data for a ticker, or None if unavailable."""
     return _MOCK.get(ticker.strip().upper())
+
+
+def get_recent_filings(ticker: str) -> dict[str, Any]:
+    """Return fake filing metadata for scaffolded agent development."""
+    return {
+        "ticker": ticker.strip().upper(),
+        "filings": [
+            {
+                "form": "10-Q",
+                "filed_at": "2026-01-01",
+                "summary": "Mock quarterly filing summary.",
+            }
+        ],
+        "source": "mock",
+    }

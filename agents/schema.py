@@ -25,3 +25,4 @@ class AgentThesis(BaseModel):
     @classmethod
     def normalize_ticker(cls, value: str) -> str:
         return value.strip().upper()
+
