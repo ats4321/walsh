@@ -1,0 +1,39 @@
+{
+  "ticker": "MSFT",
+  "signal": "HOLD",
+  "confidence": 0.423,
+  "approved": false,
+  "risk_notes": "Confidence 42% below 45% threshold; Agent signal spread=4 \u2014 extreme disagreement",
+  "reasoning": "Weighted score=0.32 \u2192 HOLD. Agents: [fundamental=SELL(65%), technical=STRONG_BUY(80%), sentiment=STRONG_BUY(67%), macro=STRONG_SELL(70%)]",
+  "theses": [
+    {
+      "agent": "fundamental",
+      "ticker": "MSFT",
+      "signal": "SELL",
+      "confidence": 0.65,
+      "reasoning": "PE=38, revenue_growth=-2%, profit_margin=35%, D/E=0.4 \u2192 score=-1"
+    },
+    {
+      "agent": "technical",
+      "ticker": "MSFT",
+      "signal": "STRONG_BUY",
+      "confidence": 0.8,
+      "reasoning": "RSI=22, MACD_hist=0.250, golden_cross=True \u2192 score=4"
+    },
+    {
+      "agent": "sentiment",
+      "ticker": "MSFT",
+      "signal": "STRONG_BUY",
+      "confidence": 0.67,
+      "reasoning": "news=0.65, social=0.70, insider_buying=True \u2192 score=2"
+    },
+    {
+      "agent": "macro",
+      "ticker": "MSFT",
+      "signal": "STRONG_SELL",
+      "confidence": 0.7,
+      "reasoning": "GDP=1.5%, fed_rate=7.2%, inflation=6.2%, sector=bearish \u2192 score=-3"
+    }
+  ],
+  "run_timestamp": "2026-07-31T18:37:45.236900+00:00"
+}
